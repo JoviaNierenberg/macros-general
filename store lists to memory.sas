@@ -1,0 +1,20 @@
+%macro store_list_to_memory (dataset_name, var_name);
+	* obtain count of the things in the list;
+	proc sql noprint;
+		select count(*) into :temp_count_var
+		from &dataset_name;
+	quit;
+	* create global variable with count;
+	%global &var_name._count;
+	%let &var_name._count = &temp_count_var;
+	%put count variable is: &&var_name._count;
+	%put value of count variable is: &&&var_name._count;
+	* create global variables for each of the things in the list;
+	%do z=1 %to &temp_count_var; * using z instead of i;
+		%global &&var_name.&z;
+	%end;
+	* save list to memory;
+	proc sql noprint;
+		select &var_name into :&var_name.1 - :&var_name.%left(&temp_count_var) from &dataset_name;
+	quit;
+%mend store_list_to_memory;
